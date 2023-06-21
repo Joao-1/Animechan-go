@@ -1,27 +1,39 @@
 package helpers
 
 import (
-	"encoding/json"
 	"io"
 	"log"
 	"net/http"
-
-	"github.com/stretchr/testify/mock"
 )
 
 type ResponseData struct {
 	Status int
+	Url string
 	Data string
+}
+
+type GetParams struct {
+	Url string
+	Client *http.Client
+	Query map[string]string
 }
 
 type Fetch struct {}
 
 // This executes a GET method
-func (f *Fetch) Get(url string, client *http.Client) (data ResponseData, err error) {
+func (f *Fetch) Get(params GetParams) (data ResponseData, err error) {
+	url, client, query := params.Url, params.Client, params.Query
+
 	req, err := http.NewRequest("GET", url, nil)
-	
+
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	for key, value := range query {
+		query := req.URL.Query()
+		query.Add(key, value)
+		req.URL.RawQuery = query.Encode()
 	}
 
 	res, err := client.Do(req)
@@ -40,40 +52,5 @@ func (f *Fetch) Get(url string, client *http.Client) (data ResponseData, err err
 		
 		bodyString := string(bodyBytes)
 		
-	return ResponseData{Status: res.StatusCode, Data: bodyString}, nil
-}
-
-type MockClient struct {
-	mock.Mock
-}
-
-func (m *MockClient) RoundTrip(req *http.Request) (*http.Response, error) {
-	args := m.Called(req)
-
-	return args.Get(0).(*http.Response), args.Error(1)
-}
-
-func MockHttpClient() (*http.Client, *MockClient) {
-	client := &http.Client{Transport: new(MockClient)}
-
-	return client, client.Transport.(*MockClient)
-}
-
-func Server() {
-	http.HandleFunc("/ping", func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Content-Type", "application/json")
-		res.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(res).Encode("pong")
-		
-		if err != nil {
-			log.Fatal(err)
-		}
-	})
-
-	go func() {
-		err := http.ListenAndServe(":3000", nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
+	return ResponseData{Status: res.StatusCode, Url: req.URL.String(), Data: bodyString}, nil
 }

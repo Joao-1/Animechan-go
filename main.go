@@ -16,7 +16,7 @@ const RandomPath = "/random"
 
 type IParams interface {
 	Anime(anime string) (Quote, error)
-	Character(character string) 
+	Character(character string) (Quote, error)
 	Only() (Quote, error)
 }
 
@@ -46,7 +46,8 @@ type Random struct {
 }
 
 func (r *Random) Anime(anime string) (Quote, error) {
-	res, err := r.fetch.Get(BaseURL + RandomPath + AnimePath, r.client)
+	path := BaseURL + RandomPath + AnimePath
+	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path, Query: map[string]string{"title": anime}})
 	if err != nil {
 		log.Fatal(err)
 	}	
@@ -59,11 +60,27 @@ func (r *Random) Anime(anime string) (Quote, error) {
 	
 	return Quote{Anime: apiQuote.Anime, Character: apiQuote.Character, Quote: apiQuote.Quote}, nil
 }
-func (r *Random) Character(character string) {}
+func (r *Random) Character(character string) (Quote, error) {
+	path := BaseURL + RandomPath + CharacterPath
+	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path, Query: map[string]string{"name": character}})
+	if err != nil {
+		log.Fatal(err)
+	}	
+
+	var apiQuote QuoteAPIResponse
+	errParse := json.Unmarshal([]byte(res.Data), &apiQuote)
+	if errParse != nil {
+		log.Fatal(err)
+	}
+	
+	return Quote{Anime: apiQuote.Anime, Character: apiQuote.Character, Quote: apiQuote.Quote}, nil
+}
 
 // Searches for a quote from a random anime and character
 func (r *Random) Only() (Quote, error) {
-	res, err := r.fetch.Get(BaseURL + RandomPath, r.client)
+	path := BaseURL + RandomPath
+
+	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path})
 	if err != nil {
 		log.Fatal(err)
 	}	
@@ -99,7 +116,7 @@ func main() {
 	client := &http.Client{}
 
 	animechan := Animechan{Client: client}
-	quote, err := animechan.Random().Only()
+	quote, err := animechan.Random().Character("Kurama")
 	if err != nil {
 		panic(err)
 	}

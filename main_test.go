@@ -1,56 +1,50 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"net/http"
-	"quotes/helpers"
 	"testing"
 
+	"github.com/h2non/gock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestAnimechan(t *testing.T) {
-	client, mockClient := helpers.MockHttpClient()
-
+	client := &http.Client{}
+	
 	animechan := Animechan{client}
 	random := animechan.Random()
 
-	anime := "Naruto Shippūden"
+	anime := "Naruto"
 	character := "Madara Uchiha"
 	quote := "The longer you live... The more you realize that reality is just made of pain, suffering and emptiness..."
-	body := fmt.Sprintf(`{"_id": "60393d7a234b061cfc607fb5","key": 3196,"anime": %q,"character": %q,"quote": %q,"__v": 0}`, anime, character, quote)
-	
-	setupMock := func() {
-		mockClient.On("RoundTrip", mock.Anything).Return(&http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(bytes.NewBufferString(body))}, nil)
-	}
+	body := fmt.Sprintf(`{"_id": "60393d7a234b061cfc607fb5","key": 3195,"anime": %q,"character": %q,"quote": %q,"__v": 0}`, anime, character, quote)
+	// randomAnimeQuote := RandomPath + AnimePath + "?title=" + "Naruto"
+	// gock.New(BaseURL).Get(RandomPath + AnimePath).Reply(200).JSON(map[string]string{"foo": "bar"})
+	// gock.New(BaseURL).Get(RandomPath + CharacterPath).Reply(200).JSON(body)
+	// gock.New(BaseURL).Get(QuotesOnlyPath).Reply(200).JSON(body)
+	// gock.New(BaseURL).Get(QuotesOnlyPath + AnimePath).Reply(200).JSON(body)
 
-	restoreMock := func() {
-		mockClient.ExpectedCalls = nil
-	}
 	t.Run("Random Instance", func(t *testing.T) {
 		assert.Equal(t, AnimePath, random.anime)
 		assert.Equal(t, CharacterPath, random.character)
 		assert.Implements(t, (*IParams)(nil), random)
 
-		t.Run("Random - Only method", func(t *testing.T) {
-			setupMock()
-			defer restoreMock()
-	
+		t.Run("Random - Only method", func(t *testing.T) {	
+			defer gock.Off()
+			gock.New(BaseURL).Get(RandomPath).Reply(200).JSON(body)
+
 			res, err := random.Only()
 	
 			assert.Nil(t, err)
-			mockClient.AssertCalled(t, "NewRequest", "123")
 			assert.Equal(t, anime, res.Anime)
 			assert.Equal(t, character, res.Character)
 			assert.Equal(t, quote, res.Quote)
 		})
-	
+
 		t.Run("Random - Anime method", func(t *testing.T) {
-			setupMock()
-			defer restoreMock()
+			defer gock.Off()
+			gock.New(BaseURL).Get(RandomPath + AnimePath).Reply(200).JSON(body)
 			
 			res, err := random.Anime(anime)
 	
@@ -60,11 +54,11 @@ func TestAnimechan(t *testing.T) {
 			assert.Equal(t, character, res.Character)
 			assert.Equal(t, quote, res.Quote)
 		})
-		t.Run("Random - Character method", func(t *testing.T) {
-			setupMock()
-			defer restoreMock()
-			
-			res, err := random.Anime(anime)
+		t.Run("Random - Character method", func(t *testing.T) {	
+			defer gock.Off()
+			gock.New(BaseURL).Get(RandomPath + CharacterPath).Reply(200).JSON(body)
+
+			res, err := random.Character(character)
 	
 			assert.Nil(t, err)
 			assert.Equal(t, anime, res.Anime)

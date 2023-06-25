@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -25,10 +24,7 @@ func (f *Fetch) Get(params GetParams) (data ResponseData, err error) {
 	url, client, query := params.Url, params.Client, params.Query
 
 	req, err := http.NewRequest("GET", url, nil)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	if err != nil { return ResponseData{}, err }	
 
 	for key, value := range query {
 		query := req.URL.Query()
@@ -37,20 +33,14 @@ func (f *Fetch) Get(params GetParams) (data ResponseData, err error) {
 	}
 
 	res, err := client.Do(req)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	if err != nil { return ResponseData{}, err }
 
 	defer res.Body.Close()
 
-		bodyBytes, err := io.ReadAll(res.Body)
-
-		if err != nil {
-			log.Fatal(err)
-		}
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil { return ResponseData{}, err }
 		
-		bodyString := string(bodyBytes)
+	bodyString := string(bodyBytes)
 		
 	return ResponseData{Status: res.StatusCode, Url: req.URL.String(), Data: bodyString}, nil
 }

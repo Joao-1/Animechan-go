@@ -3,22 +3,29 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"quotes/helpers"
 )
 
-const BaseURL = "http://animechan.melosh.space"
+const BaseURL = "https://animechan.xyz/api"
 const CharacterPath = "/character"
 const AnimePath = "/anime"
 const QuotesOnlyPath = "/quotes"
 const RandomPath = "/random"
 
-type IParams interface {
+type IRandom interface {
 	Anime(anime string) (Quote, error)
 	Character(character string) (Quote, error)
 	Only() (Quote, error)
 }
+
+type IQuotes interface {
+	Anime(anime string, page *int) ([]Quote, error)
+	Character(character string, page *int) ([]Quote, error)
+	Only() ([]Quote, error)
+}
+
+// Quote struct.
 type Quote struct {
 	Anime string
 	Character string
@@ -33,6 +40,7 @@ type QuoteAPIResponse struct {
 	V       int    `json:"__v"`
 }
 
+// Quotes is the struct for the quotes endpoint.
 type Random struct {
 	fetch *helpers.Fetch
 	client *http.Client
@@ -43,77 +51,48 @@ func (r *Random) Only() (Quote, error) {
 	path := BaseURL + RandomPath
 
 	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path})
-	if err != nil {
-		log.Fatal(err)
-	}	
+	if err != nil { return Quote{}, err }
 
-	var apiQuote QuoteAPIResponse
-	errParse := json.Unmarshal([]byte(res.Data), &apiQuote)
-	if errParse != nil {
-		log.Fatal(err)
-	}
-
-	return Quote{Anime: apiQuote.Anime, Character: apiQuote.Character, Quote: apiQuote.Quote}, nil
+	return formatOneQuote(res.Data)
 }
 
+// Searches for a random quote from a specific anime
 func (r *Random) Anime(anime string) (Quote, error) {
 	path := BaseURL + RandomPath + AnimePath
-	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path, Query: map[string]string{"title": anime}})
-	if err != nil {
-		log.Fatal(err)
-	}	
 
-	var apiQuote QuoteAPIResponse
-	errParse := json.Unmarshal([]byte(res.Data), &apiQuote)
-	if errParse != nil {
-		log.Fatal(err)
-	}
-	
-	return Quote{Anime: apiQuote.Anime, Character: apiQuote.Character, Quote: apiQuote.Quote}, nil
+	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path, Query: map[string]string{"title": anime}})
+	if err != nil { return Quote{}, err }
+
+	return formatOneQuote(res.Data)
 }
+
+// Search for a random quote from a specific character
 func (r *Random) Character(character string) (Quote, error) {
 	path := BaseURL + RandomPath + CharacterPath
-	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path, Query: map[string]string{"name": character}})
-	if err != nil {
-		log.Fatal(err)
-	}	
 
-	var apiQuote QuoteAPIResponse
-	errParse := json.Unmarshal([]byte(res.Data), &apiQuote)
-	if errParse != nil {
-		log.Fatal(err)
-	}
-	
-	return Quote{Anime: apiQuote.Anime, Character: apiQuote.Character, Quote: apiQuote.Quote}, nil
+	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path, Query: map[string]string{"name": character}})
+	if err != nil { return Quote{}, err }
+
+	return formatOneQuote(res.Data)
 }
 
+// Quotes is the struct for the quotes endpoint. 
 type Quotes struct {
 	fetch *helpers.Fetch
 	client *http.Client
 }
 
+// Searches for 10 quotes from random anime and character.
 func (q *Quotes) Only() ([]Quote, error) {
 	path := BaseURL + QuotesOnlyPath
 
 	res, err := q.fetch.Get(helpers.GetParams{Client: q.client, Url: path})
-	if err != nil {
-		log.Fatal(err)
-	}	
+	if err != nil { return []Quote{}, err }	
 
-	var apiQuotes []QuoteAPIResponse
-	errParse := json.Unmarshal([]byte(res.Data), &apiQuotes)
-	if errParse != nil {
-		log.Fatal(err)
-	}
-
-	var quotes []Quote
-	for _, value := range apiQuotes {
-		quotes = append(quotes, Quote{Anime: value.Anime, Character: value.Character, Quote: value.Quote})
-	}
-
-	return quotes, nil
+	return formatManyQuote(res.Data)
 }
 
+// Searches for quotes from a specific anime. It is possible to specify page.
 func (q *Quotes) Anime(anime string, page *int) ([]Quote, error) {
 	path := BaseURL + QuotesOnlyPath + AnimePath
 	pageToSearch := 10
@@ -121,24 +100,11 @@ func (q *Quotes) Anime(anime string, page *int) ([]Quote, error) {
 	if page != nil {pageToSearch = *page}
 
 	res, err := q.fetch.Get(helpers.GetParams{Client: q.client, Url: path, Query: map[string]string{"title": anime, "page":fmt.Sprint(pageToSearch)}})
-	if err != nil {
-		log.Fatal(err)
-	}	
+	if err != nil { return []Quote{}, err }		
 	
-	var apiQuotes []QuoteAPIResponse
-	errParse := json.Unmarshal([]byte(res.Data), &apiQuotes)
-	if errParse != nil {
-		log.Fatal(err)
-	}
-	
-	var quotes []Quote
-	for _, value := range apiQuotes {
-		quotes = append(quotes, Quote{Anime: value.Anime, Character: value.Character, Quote: value.Quote})
-	}
-
-	return quotes, nil
+	return formatManyQuote(res.Data)
 }
-
+// Searches for quotes from a specific character. It is possible to specify page.
 func (q *Quotes) Character(character string, page *int) ([]Quote, error) {
 	path := BaseURL + QuotesOnlyPath + CharacterPath
 	pageToSearch := 10
@@ -146,24 +112,12 @@ func (q *Quotes) Character(character string, page *int) ([]Quote, error) {
 	if page != nil {pageToSearch = *page}
 
 	res, err := q.fetch.Get(helpers.GetParams{Client: q.client, Url: path, Query: map[string]string{"name": character, "page":fmt.Sprint(pageToSearch)}})
-	if err != nil {
-		log.Fatal(err)
-	}	
+	if err != nil { return []Quote{}, err }	
 
-	var apiQuotes []QuoteAPIResponse
-	errParse := json.Unmarshal([]byte(res.Data), &apiQuotes)
-	if errParse != nil {
-		log.Fatal(err)
-	}
-
-	var quotes []Quote
-	for _, value := range apiQuotes {
-		quotes = append(quotes, Quote{Anime: value.Anime, Character: value.Character, Quote: value.Quote})
-	}
-
-	return quotes, nil
+	return formatManyQuote(res.Data)
 }
 
+// Animechan is the main struct for the package. It contains the client for the http requests.
 type Animechan struct {
 	Client *http.Client
 }
@@ -179,6 +133,7 @@ func (a *Animechan) Random() *Random {
 	return random
 }
 
+// Searches for quotes from a specific anime or character. It is possible to specify page.
 func (a *Animechan) Quotes() *Quotes {
 	quotes := new(Quotes)
 	fetch := new(helpers.Fetch)
@@ -189,15 +144,24 @@ func (a *Animechan) Quotes() *Quotes {
 	return quotes
 }
 
-func main() {
-	client := &http.Client{}
+func formatOneQuote(data string) (Quote, error) {
+	var apiQuote QuoteAPIResponse
+	
+	errParse := json.Unmarshal([]byte(data), &apiQuote)
+	if errParse != nil { return Quote{}, errParse }	
 
-	animechan := Animechan{Client: client}
-	page := 1
-	quote, err := animechan.Quotes().Character("Naruto", &page)
-	if err != nil {
-		panic(err)
+	return Quote{Anime: apiQuote.Anime, Character: apiQuote.Character, Quote: apiQuote.Quote}, nil
+}
+
+func formatManyQuote(data string) ([]Quote, error) {
+	var apiQuotes []QuoteAPIResponse
+	errParse := json.Unmarshal([]byte(data), &apiQuotes)
+	if errParse != nil { return []Quote{}, errParse }	
+
+	var quotes []Quote
+	for _, value := range apiQuotes {
+		quotes = append(quotes, Quote{Anime: value.Anime, Character: value.Character, Quote: value.Quote})
 	}
 
-	fmt.Println(quote)
+	return quotes, nil
 }

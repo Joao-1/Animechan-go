@@ -26,7 +26,6 @@ func TestFetch(t *testing.T){
 		fetch := Fetch{}
 		res, err := fetch.Get(GetParams{Client: client, Url: baseURL})
 		
-		fmt.Println(res)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusOK, res.Status)
 		assert.Equal(t, body, res.Data)
@@ -36,7 +35,6 @@ func TestFetch(t *testing.T){
 		fetch := Fetch{}
 		res, err := fetch.Get(GetParams{Client: client, Url: baseURL, Query: map[string]string{"foo": "bar"}})
 		
-		fmt.Println(res)
 		assert.Nil(t, err)
 		assert.Equal(t, urlWithQuery, res.Url)
 		assert.Equal(t, http.StatusOK, res.Status)

@@ -1,10 +1,11 @@
-package main
+package animechan
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"quotes/helpers"
+
+	"github.com/joao-1/animechan-go/helpers"
 )
 
 const BaseURL = "https://animechan.xyz/api"

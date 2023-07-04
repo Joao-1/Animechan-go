@@ -1,4 +1,4 @@
-module quotes
+module github.com/joao-1/animechan-go
 
 go 1.20
 

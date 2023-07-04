@@ -166,5 +166,3 @@ func formatManyQuote(data string) ([]Quote, error) {
 
 	return quotes, nil
 }
-
-func main(){}

@@ -45,14 +45,6 @@ Random quote from a specific anime
 
 	fmt.Printf("Anime: %q, Character: %q, Quote: %q", res.Anime, res.Character, res.Quote)
 ```
-
-Random quote from a specific anime
-```go
-	res, err := animechan.Random().Anime("Naruto")
-	if err != nil { panic(err) }
-
-	fmt.Printf("Anime: %q, Character: %q, Quote: %q", res.Anime, res.Character, res.Quote)
-```
 ------
 
 - Quotes endpoint

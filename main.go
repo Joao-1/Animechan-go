@@ -8,7 +8,6 @@ import (
 	"github.com/joao-1/animechan-go/helpers"
 )
 
-const BaseURL = "https://animechan.xyz/api"
 const CharacterPath = "/character"
 const AnimePath = "/anime"
 const QuotesOnlyPath = "/quotes"
@@ -45,11 +44,12 @@ type QuoteAPIResponse struct {
 type Random struct {
 	fetch *helpers.Fetch
 	client *http.Client
+	BaseURL string
 }
 
 // Searches for a quote from a random anime and character
 func (r *Random) Only() (Quote, error) {
-	path := BaseURL + RandomPath
+	path := r.BaseURL + RandomPath
 
 	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path})
 	if err != nil { return Quote{}, err }
@@ -59,7 +59,7 @@ func (r *Random) Only() (Quote, error) {
 
 // Searches for a random quote from a specific anime
 func (r *Random) Anime(anime string) (Quote, error) {
-	path := BaseURL + RandomPath + AnimePath
+	path := r.BaseURL + RandomPath + AnimePath
 
 	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path, Query: map[string]string{"title": anime}})
 	if err != nil { return Quote{}, err }
@@ -69,7 +69,7 @@ func (r *Random) Anime(anime string) (Quote, error) {
 
 // Search for a random quote from a specific character
 func (r *Random) Character(character string) (Quote, error) {
-	path := BaseURL + RandomPath + CharacterPath
+	path := r.BaseURL + RandomPath + CharacterPath
 
 	res, err := r.fetch.Get(helpers.GetParams{Client: r.client, Url: path, Query: map[string]string{"name": character}})
 	if err != nil { return Quote{}, err }
@@ -81,11 +81,12 @@ func (r *Random) Character(character string) (Quote, error) {
 type Quotes struct {
 	fetch *helpers.Fetch
 	client *http.Client
+	BaseURL string
 }
 
 // Searches for 10 quotes from random anime and character.
 func (q *Quotes) Only() ([]Quote, error) {
-	path := BaseURL + QuotesOnlyPath
+	path := q.BaseURL + QuotesOnlyPath
 
 	res, err := q.fetch.Get(helpers.GetParams{Client: q.client, Url: path})
 	if err != nil { return []Quote{}, err }	
@@ -95,7 +96,7 @@ func (q *Quotes) Only() ([]Quote, error) {
 
 // Searches for quotes from a specific anime. It is possible to specify page.
 func (q *Quotes) Anime(anime string, page *int) ([]Quote, error) {
-	path := BaseURL + QuotesOnlyPath + AnimePath
+	path := q.BaseURL + QuotesOnlyPath + AnimePath
 	pageToSearch := 10
 
 	if page != nil {pageToSearch = *page}
@@ -107,7 +108,7 @@ func (q *Quotes) Anime(anime string, page *int) ([]Quote, error) {
 }
 // Searches for quotes from a specific character. It is possible to specify page.
 func (q *Quotes) Character(character string, page *int) ([]Quote, error) {
-	path := BaseURL + QuotesOnlyPath + CharacterPath
+	path := q.BaseURL + QuotesOnlyPath + CharacterPath
 	pageToSearch := 10
 
 	if page != nil {pageToSearch = *page}
@@ -121,6 +122,7 @@ func (q *Quotes) Character(character string, page *int) ([]Quote, error) {
 // Animechan is the main struct for the package. It contains the client for the http requests.
 type Animechan struct {
 	Client *http.Client
+	BaseURL string
 }
 
 // Unlike the normal quote endpoint, it searches for a random one. It is possible to specify character or anime.
@@ -130,6 +132,7 @@ func (a *Animechan) Random() *Random {
 
 	random.fetch = fetch
 	random.client = a.Client
+	random.BaseURL = a.BaseURL
 	
 	return random
 }
@@ -141,6 +144,7 @@ func (a *Animechan) Quotes() *Quotes {
 
 	quotes.fetch = fetch
 	quotes.client = a.Client
+	quotes.BaseURL = a.BaseURL
 
 	return quotes
 }

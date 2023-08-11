@@ -18,13 +18,13 @@ var singleQuote = fmt.Sprintf(`{"_id": "60393d7a234b061cfc607fb5","key": 3195,"a
 func TestAnimechan(t *testing.T) {
 	client := &http.Client{}
 	
-	animechan := Animechan{client}
+	animechan := Animechan{client, "https://animechan.app/api/"}
 	t.Run("Quotes Instance", func(t *testing.T) {
 		assert.Implements(t, (*IQuotes)(nil), animechan.Quotes())
 
 		t.Run("Quotes - Only method", func(t *testing.T) {	
 			defer gock.Off()
-			gock.New(BaseURL).Get(QuotesOnlyPath).Reply(200).JSON("[" + strings.Join([]string{singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote}, ",") + "]")
+			gock.New(animechan.BaseURL).Get(QuotesOnlyPath).Reply(200).JSON("[" + strings.Join([]string{singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote}, ",") + "]")
 			
 			res, err := animechan.Quotes().Only()
 
@@ -40,7 +40,7 @@ func TestAnimechan(t *testing.T) {
 
 		t.Run("Quotes - Anime method", func(t *testing.T) {
 			defer gock.Off()
-			gock.New(BaseURL).Get(QuotesOnlyPath + AnimePath).Reply(200).JSON("[" + strings.Join([]string{singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote}, ",") + "]")
+			gock.New(animechan.BaseURL).Get(QuotesOnlyPath + AnimePath).Reply(200).JSON("[" + strings.Join([]string{singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote}, ",") + "]")
 			
 			res, err := animechan.Quotes().Anime(anime, nil)
 	
@@ -56,7 +56,7 @@ func TestAnimechan(t *testing.T) {
 
 		t.Run("Quotes - Anime method - pagination", func(t *testing.T) {
 			defer gock.Off()
-			gock.New(BaseURL).Get(QuotesOnlyPath + AnimePath).Reply(200).JSON("[" + strings.Join([]string{singleQuote, singleQuote, singleQuote}, ",") + "]")
+			gock.New(animechan.BaseURL).Get(QuotesOnlyPath + AnimePath).Reply(200).JSON("[" + strings.Join([]string{singleQuote, singleQuote, singleQuote}, ",") + "]")
 
 			page := 3
 			res, err := animechan.Quotes().Anime(anime, &page)
@@ -72,7 +72,7 @@ func TestAnimechan(t *testing.T) {
 		})
 		t.Run("Quotes - Character method", func(t *testing.T) {	
 			defer gock.Off()
-			gock.New(BaseURL).Get(QuotesOnlyPath + CharacterPath).Reply(200).JSON("[" + strings.Join([]string{singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote}, ",") + "]")
+			gock.New(animechan.BaseURL).Get(QuotesOnlyPath + CharacterPath).Reply(200).JSON("[" + strings.Join([]string{singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote, singleQuote}, ",") + "]")
 
 			res, err := animechan.Quotes().Character(anime, nil)
 	
@@ -88,7 +88,7 @@ func TestAnimechan(t *testing.T) {
 
 		t.Run("Quotes - Character method - Pagination", func(t *testing.T) {	
 			defer gock.Off()
-			gock.New(BaseURL).Get(QuotesOnlyPath + CharacterPath).Reply(200).JSON("[" + strings.Join([]string{singleQuote, singleQuote, singleQuote}, ",") + "]")
+			gock.New(animechan.BaseURL).Get(QuotesOnlyPath + CharacterPath).Reply(200).JSON("[" + strings.Join([]string{singleQuote, singleQuote, singleQuote}, ",") + "]")
 
 			page := 3
 			res, err := animechan.Quotes().Character(anime, &page)
@@ -108,7 +108,7 @@ func TestAnimechan(t *testing.T) {
 		assert.Implements(t, (*IRandom)(nil), animechan.Random())
 		t.Run("Random - Only method", func(t *testing.T) {	
 			defer gock.Off()
-			gock.New(BaseURL).Get(RandomPath).Reply(200).JSON(singleQuote)
+			gock.New(animechan.BaseURL).Get(RandomPath).Reply(200).JSON(singleQuote)
 
 			res, err := animechan.Random().Only()
 	
@@ -120,7 +120,7 @@ func TestAnimechan(t *testing.T) {
 
 		t.Run("Random - Anime method", func(t *testing.T) {
 			defer gock.Off()
-			gock.New(BaseURL).Get(RandomPath + AnimePath).Reply(200).JSON(singleQuote)
+			gock.New(animechan.BaseURL).Get(RandomPath + AnimePath).Reply(200).JSON(singleQuote)
 			
 			res, err := animechan.Random().Anime(anime)
 	
@@ -132,7 +132,7 @@ func TestAnimechan(t *testing.T) {
 		})
 		t.Run("Random - Character method", func(t *testing.T) {	
 			defer gock.Off()
-			gock.New(BaseURL).Get(RandomPath + CharacterPath).Reply(200).JSON(singleQuote)
+			gock.New(animechan.BaseURL).Get(RandomPath + CharacterPath).Reply(200).JSON(singleQuote)
 
 			res, err := animechan.Random().Character(character)
 	

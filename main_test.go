@@ -185,11 +185,9 @@ func TestFormatManyQuotes(t *testing.T) {
 func ExampleRandom_Only() {
 	client := &http.Client{}
 
-	animechan := Animechan{Client: client}
+	animechan := Animechan{Client: client, BaseURL: "https://animechan.app/api/"}
 	res, err := animechan.Random().Only()
-	if err != nil {
-		panic(err)
-	}
+	if err != nil { panic(err) }
 
 	fmt.Printf("Anime: %q, Character: %q, Quote: %q", res.Anime, res.Character, res.Quote)
 }
@@ -197,11 +195,9 @@ func ExampleRandom_Only() {
 func ExampleRandom_Anime(){
 	client := &http.Client{}
 
-	animechan := Animechan{Client: client}
+	animechan := Animechan{Client: client, BaseURL: "https://animechan.app/api/"}
 	res, err := animechan.Random().Anime("Naruto")
-	if err != nil {
-		panic(err)
-	}
+	if err != nil { panic(err) }
 
 	fmt.Printf("Anime: %q, Character: %q, Quote: %q", res.Anime, res.Character, res.Quote)
 }
@@ -209,11 +205,9 @@ func ExampleRandom_Anime(){
 func ExampleRandom_Character(){
 	client := &http.Client{}
 
-	animechan := Animechan{Client: client}
+	animechan := Animechan{Client: client, BaseURL: "https://animechan.app/api/"}
 	res, err := animechan.Random().Character("Madara Uchiha")
-	if err != nil {
-		panic(err)
-	}
+	if err != nil { panic(err) }
 
 	fmt.Printf("Anime: %q, Character: %q, Quote: %q", res.Anime, res.Character, res.Quote)
 }
@@ -221,11 +215,9 @@ func ExampleRandom_Character(){
 func ExampleQuotes_Only() {
 	client := &http.Client{}
 
-	animechan := Animechan{Client: client}
+	animechan := Animechan{Client: client, BaseURL: "https://animechan.app/api/"}
 	res, err := animechan.Quotes().Only()
-	if err != nil {
-		panic(err)
-	}
+	if err != nil { panic(err) }
 
 	fmt.Printf("all quotes: %v", res)
 }
@@ -233,12 +225,10 @@ func ExampleQuotes_Only() {
 func ExampleQuotes_Anime() {
 	client := &http.Client{}
 
-	animechan := Animechan{Client: client}
+	animechan := Animechan{Client: client, BaseURL: "https://animechan.app/api/"}
 	page := 3
 	res, err := animechan.Quotes().Anime("Naruto", &page)
-	if err != nil {
-		panic(err)
-	}
+	if err != nil { panic(err) }
 
 	fmt.Printf("all quotes: %v", res)
 }
@@ -246,12 +236,10 @@ func ExampleQuotes_Anime() {
 func ExampleQuotes_Character() {
 	client := &http.Client{}
 
-	animechan := Animechan{Client: client}
+	animechan := Animechan{Client: client, BaseURL: "https://animechan.app/api/"}
 	page := 3
 	res, err := animechan.Quotes().Character("Madara Uchiha", &page)
-	if err != nil {
-		panic(err)
-	}
+	if err != nil { panic(err) }
 
 	fmt.Printf("all quotes: %v", res)
 }
